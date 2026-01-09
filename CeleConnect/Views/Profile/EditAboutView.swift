@@ -4,6 +4,7 @@
 //
 //  Created by Deborah on 1/8/26.
 //
+import SwiftUI
 
 struct EditAboutView: View {
     @Binding var draft: EditProfileDraft
@@ -12,7 +13,7 @@ struct EditAboutView: View {
     var body: some View {
         Form {
             Section("Name") {
-                TextField("Display name", text: $draft.displayName)
+                TextField("Display name", text: $draft.firstName)
                     .textInputAutocapitalization(.words)
             }
 
@@ -36,7 +37,7 @@ struct EditAboutView: View {
                     // TODO: call your save function / VM
                     dismiss()
                 }
-                .disabled(draft.displayName.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(draft.firstName.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
         .onChange(of: draft.bio) { _, newValue in

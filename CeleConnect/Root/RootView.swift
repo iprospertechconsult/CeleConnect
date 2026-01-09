@@ -15,11 +15,21 @@ struct RootView: View {
         Group {
             if authVM.needsMFA {
                 MFAChallengeView(authVM: authVM)
+
             } else if authVM.user == nil {
-                AuthView(authVM: authVM)
+                // IMPORTANT: EntryFlowView needs to use THIS SAME authVM
+                EntryFlowView(authVM: authVM)
+
+            } else if !authVM.isPhoneLinkedOrVerified {
+                PhoneVerifyView(authVM: authVM)
+
             } else {
                 MainTabView()
             }
+        }
+        .task {
+            // ensures state is correct on cold start / app relaunch
+            await authVM.refreshUserState()
         }
     }
 }

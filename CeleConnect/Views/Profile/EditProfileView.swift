@@ -21,7 +21,7 @@ struct EditProfileView: View {
             }
 
             Section("About") {
-                LabeledRow(title: "Name", value: draft.displayName)
+                LabeledRow(title: "Name", value: draft.firstName)
                 LabeledRow(title: "City", value: draft.city)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Bio").font(.caption).foregroundStyle(.secondary)

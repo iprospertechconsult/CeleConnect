@@ -85,6 +85,7 @@ struct PhotosStepView: View {
                 }
             )
         }
+
         .overlay {
             if uploadVM.isUploading {
                 ZStack {

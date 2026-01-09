@@ -4,10 +4,18 @@
 //
 //  Created by Deborah on 1/7/26.
 //
+//
+//  EntryFlowView.swift
+//  CeleConnect
+//
+//  Created by Deborah on 1/7/26.
+//
+
 import SwiftUI
 
 struct EntryFlowView: View {
-    @StateObject private var authVM = AuthViewModel()
+    @ObservedObject var authVM: AuthViewModel   // ✅ use the one from RootView
+
     @State private var showLogin = false
     @State private var showSignUp = false
 
@@ -22,14 +30,15 @@ struct EntryFlowView: View {
                 onTermsTapped: { /* open terms screen */ }
             )
             .navigationDestination(isPresented: $showLogin) {
-                AuthView(authVM: authVM) // your login screen
+                AuthView(authVM: authVM) // ✅ same instance
             }
             .navigationDestination(isPresented: $showSignUp) {
-                CreateAccountView(authVM: authVM) 
+                CreateAccountView(authVM: authVM) // ✅ same instance
             }
         }
     }
 }
+
 #Preview {
-    EntryFlowView()
+    EntryFlowView(authVM: AuthViewModel()) // preview needs a VM
 }

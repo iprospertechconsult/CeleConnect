@@ -28,8 +28,26 @@ struct DiscoverView: View {
                 Color.black.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    TopBar(brand: brand) {
-                        onOpenSettings()   // ✅ switches to Profile tab
+                    // ✅ Top bar is locked and will NEVER resize
+                    TopBar {
+                        onOpenSettings()
+                    }
+                    // ✅ Logo is drawn ABOVE the bar (overlay) so it can be 100pt
+                    //    without affecting the bar height or pushing anything down.
+                    .overlay(alignment: .top) {
+                        GeometryReader { geo in
+                            Image("CCDiscoverLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 120)          // big logo
+                                // ⬇️ center logo inside 64pt bar
+                                .position(
+                                    x: geo.size.width / 2,
+                                    y: 32                     // barHeight / 2
+                                )
+                                .allowsHitTesting(false)
+                        }
+                        .frame(height: 64)                    // matches TopBar height
                     }
 
                     ZStack {
@@ -107,7 +125,7 @@ struct DiscoverView: View {
                 .overlay(alignment: .topLeading) {
                     if isTop {
                         SwipeStampOverlay(offset: dragOffset)
-                            .padding(.top, 90)
+                            .padding(.top, 62)
                             .padding(.horizontal, 16)
                     }
                 }
@@ -161,29 +179,16 @@ struct DiscoverView: View {
     }
 }
 
-// MARK: - Top Bar (fills safe area like app bar)
+// MARK: - Top Bar (LOCKED height; logo is NOT inside)
 private struct TopBar: View {
-    let brand: Color
     var onGear: () -> Void
-    
+    private let barHeight: CGFloat = 64
+
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Background fills into the notch/safe area
-            Color.white
-                .ignoresSafeArea(edges: .top)
-                .frame(height: 110)
-            
-            HStack {
-                Spacer()
-                
-                Image("CCDiscoverLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 100)
-                    .padding(.bottom, 5)
-                
-                Spacer()
-                
+        Color.white
+            .ignoresSafeArea(edges: .top)
+            .frame(height: barHeight)   // ✅ fixed bar height
+            .overlay(alignment: .bottomTrailing) {
                 Button(action: onGear) {
                     Image(systemName: "gearshape.fill")
                         .font(.system(size: 18, weight: .semibold))
@@ -194,16 +199,15 @@ private struct TopBar: View {
                 .padding(.trailing, 10)
                 .padding(.bottom, 6)
             }
-        }
-        .overlay(alignment: .bottom) {
-            Divider().opacity(0.15)
-        }
+            .overlay(alignment: .bottom) {
+                Divider().opacity(0.15)
+            }
     }
 }
 
-// MARK: - Card View (full-screen photo + bottom overlay like screenshot)
+/// MARK: - Card View (full-screen photo + bottom overlay like screenshot)
 private struct ProfileCardView: View {
-    let profile: UserProfile
+    let profile: AppUser
     let brand: Color
     let bottomInsetForButtons: CGFloat
 
@@ -231,15 +235,15 @@ private struct ProfileCardView: View {
                     Image(systemName: "location.fill")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.95))
-                    
+
                     Text(locationText)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.95))
                 }
                 .shadow(color: .black.opacity(0.35), radius: 8, x: 0, y: 2)
 
-                // Big translucent name/ag
-                Text("\(profile.displayName) \(profile.age)")
+                // Big translucent name/age
+                Text("\(profile.firstName) \(profile.age)")
                     .font(.system(size: 58, weight: .heavy))
                     .foregroundStyle(.white.opacity(0.35))
                     .lineLimit(1)
@@ -247,7 +251,7 @@ private struct ProfileCardView: View {
                     .padding(.top, -6)
 
                 // Bio with quote
-                Text("\"\(profile.bio)\"")
+                Text("\"\(aboutMeText)\"")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.95))
                     .lineSpacing(2)
@@ -256,22 +260,36 @@ private struct ProfileCardView: View {
                 Spacer().frame(height: bottomInsetForButtons)
             }
             .padding(.horizontal, 18)
-            .padding(.bottom, 10)
+            .padding(.bottom, 18)
         }
-        .clipped()
     }
 
+    // ✅ MUST be outside body (struct scope)
+
     private var locationText: String {
-        if profile.city.isEmpty { return "Nearby" }
-        return "USA, \(profile.city)"
+        // If your AppUser has city as a String (not optional), adjust accordingly.
+        // You previously wrote profile.city ?? "" but AppUser in your model didn’t show city.
+        // So: safest is to use location stored elsewhere or default.
+        let city = (profile.city ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if city.isEmpty { return "Nearby" }
+        return city
     }
-    
-    private var bestPhotoURL: URL? {
-            // Prefer mainPhotoURL, else first in photoURLs
-            let s = profile.mainPhotoURL ?? profile.photoURLs?.first
-            guard let s, !s.isEmpty else { return nil }
-            return URL(string: s)
+
+    private var aboutMeText: String {
+        // If AboutMe is a model, convert it to a display string.
+        if let about = profile.aboutMe {
+            // If AboutMe has a "text" field, use: return about.text
+            return String(describing: about)
         }
+        return "Here for something meaningful."
+    }
+
+    private var bestPhotoURL: URL? {
+        let first = profile.photoURLs.first
+        let s = (profile.mainPhotoURL?.isEmpty == false) ? profile.mainPhotoURL : first
+        guard let s, !s.isEmpty else { return nil }
+        return URL(string: s)
+    }
 
     @ViewBuilder
     private var cardImage: some View {

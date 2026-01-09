@@ -5,6 +5,8 @@
 //  Created by Deborah on 1/8/26.
 //
 
+import SwiftUI
+
 struct EditDiscoveryView: View {
     @Binding var draft: EditProfileDraft
     @Environment(\.dismiss) private var dismiss

@@ -41,7 +41,14 @@ struct OnboardingFlowView: View {
                     InterestsStepView(vm: onboardingVM)
 
                 case .photos:
-                    PhotosStepView(vm: onboardingVM)
+                    PhotosStepView(
+                        onBack: { onboardingVM.back() },
+                        onNext: { photoURLs, mainPhotoURL in
+                            onboardingVM.draft.photoURLs = photoURLs
+                            onboardingVM.draft.mainPhotoURL = mainPhotoURL ?? ""
+                            onboardingVM.next()
+                        }
+                    )
 
                 case .location:
                     LocationStepView(vm: onboardingVM)
