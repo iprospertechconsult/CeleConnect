@@ -52,7 +52,7 @@ struct PhotoThumb: View {
 }
 
 struct EditPhotosView: View {
-    @Binding var draft: EditProfileDraft
+    @Binding var draft: ProfileDraft
 
     var body: some View {
         VStack(spacing: 14) {
